@@ -12,6 +12,11 @@
   const bars = document.getElementById('bars');
   const bgVideos = document.querySelectorAll('video');
   const bg = document.querySelector('.bg');
+  const visualizer = document.getElementById('visualizer');
+
+  let visualizerCtx = null;
+  let vizW = 0;
+  let vizH = 0;
 
   let particlesStarted = false;
   let revealDone = false;
@@ -95,6 +100,65 @@
     bars.classList.toggle('paused', !isPlaying);
   }
 
+  function setupVisualizerCanvas() {
+    if (!visualizer) return;
+    if (!visualizerCtx) {
+      visualizerCtx = visualizer.getContext('2d');
+    }
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = visualizer.getBoundingClientRect();
+    const nextW = Math.max(1, Math.floor(rect.width * dpr));
+    const nextH = Math.max(1, Math.floor(rect.height * dpr));
+
+    if (visualizer.width !== nextW || visualizer.height !== nextH) {
+      visualizer.width = nextW;
+      visualizer.height = nextH;
+      if (visualizerCtx) {
+        visualizerCtx.setTransform(1, 0, 0, 1, 0, 0);
+        visualizerCtx.scale(dpr, dpr);
+      }
+    }
+
+    vizW = Math.max(1, rect.width);
+    vizH = Math.max(1, rect.height);
+  }
+
+  function drawVisualizer(data) {
+    if (!visualizerCtx || !vizW || !vizH || !data) return;
+
+    const ctx = visualizerCtx;
+    ctx.clearRect(0, 0, vizW, vizH);
+
+    const barsCount = 52;
+    const barW = vizW / barsCount;
+    const centerY = vizH / 2;
+
+    for (let i = 0; i < barsCount; i++) {
+      const idx = Math.floor((i / barsCount) * data.length * 0.85);
+      const amp = data[idx] / 255;
+      const wave = 0.3 + Math.sin((i / barsCount) * Math.PI) * 0.7;
+      const h = Math.max(2, amp * vizH * 0.55 * wave);
+      const x = i * barW + barW * 0.15;
+      const w = barW * 0.68;
+
+      const alpha = 0.16 + amp * 0.45;
+      ctx.fillStyle = `rgba(235, 244, 255, ${alpha.toFixed(3)})`;
+      ctx.fillRect(x, centerY - h, w, h * 2);
+    }
+
+    const grad = ctx.createRadialGradient(vizW / 2, centerY, 1, vizW / 2, centerY, vizW * 0.52);
+    grad.addColorStop(0, 'rgba(215,230,255,0.24)');
+    grad.addColorStop(1, 'rgba(215,230,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, vizW, vizH);
+  }
+
+  function clearVisualizer() {
+    if (!visualizerCtx || !vizW || !vizH) return;
+    visualizerCtx.clearRect(0, 0, vizW, vizH);
+  }
+
   function setBgBrightness(v) {
     if (!bg) return;
     const value = Math.max(0.22, Math.min(0.95, v));
@@ -108,6 +172,7 @@
     }
     silenceFrames = 0;
     setBgBrightness(0.32);
+    clearVisualizer();
   }
 
   function startBgReactive() {
@@ -146,6 +211,7 @@
       }
 
       analyser.getByteFrequencyData(data);
+      drawVisualizer(data);
       let sum = 0;
       for (let i = 0; i < data.length; i++) {
         sum += data[i];
@@ -218,6 +284,9 @@
     }
     startParticles();
   }
+
+  setupVisualizerCanvas();
+  window.addEventListener('resize', setupVisualizerCanvas);
 
   if (audio) {
     audio.volume = 0.15;
