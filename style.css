@@ -1,0 +1,337 @@
+/* ╔══════════════════════════════════════════════════╗
+   ║  НАСТРОЙКИ — МЕНЯЙ ТУТ                         ║
+   ╚══════════════════════════════════════════════════╝ */
+
+:root {
+  --accent: 220, 80%, 95%;
+  --accent-color: hsl(var(--accent));
+  --accent-10: hsla(var(--accent), .10);
+  --accent-20: hsla(var(--accent), .20);
+  --accent-40: hsla(var(--accent), .40);
+
+  --bg: #060608;
+  --card-bg: rgba(12, 12, 20, .35);
+  --border: rgba(255, 255, 255, .06);
+  --border-hover: rgba(255, 255, 255, .12);
+
+  --text: #e8e8ec;
+  --text-dim: #6e6e78;
+  --text-muted: #3a3a42;
+
+  --radius: 18px;
+  --radius-sm: 10px;
+  --blur: 10px;
+  --card-w: 860px;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ═══ RESET ═══ */
+*, *::before, *::after { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+  -webkit-tap-highlight-color: transparent;
+}
+:focus { outline: none; }
+html { -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+::selection { background: var(--accent-40); color: #fff; }
+a { text-decoration: none; color: inherit; }
+button { border: none; background: none; cursor: pointer; font-family: inherit; }
+img { display: block; }
+
+/* ═══ REVEAL (НОВАЯ АНИМАЦИЯ ТАПА) ═══ */
+.reveal-screen {
+  position: fixed; inset: 0; z-index: 999;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.8s;
+}
+.reveal-screen.out {
+  opacity: 0; 
+  visibility: hidden;
+  pointer-events: none;
+}
+.reveal-content {
+  text-align: center;
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s ease, filter 0.8s ease;
+}
+/* При тапе контент резко летит в экран и размывается */
+.reveal-screen.out .reveal-content {
+  transform: scale(1.6) translateY(-20px);
+  opacity: 0;
+  filter: blur(15px);
+}
+.reveal-text {
+  font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 700;
+  letter-spacing: -1px; color: var(--text); opacity: .85;
+}
+.reveal-hint {
+  display: block; margin-top: 14px; font-size: .7rem;
+  letter-spacing: 4px; text-transform: uppercase; color: var(--text-dim);
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+/* ═══ BACKGROUND ═══ */
+.bg {
+  position: fixed; inset: 0; z-index: 0;
+  width: 100%; height: 100%; 
+  object-fit: cover;         
+  filter: blur(30px) brightness(.3) saturate(1.2);
+  transform: scale(1.15);
+}
+#particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+
+/* ═══ MAIN ═══ */
+.main {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 30px 16px;
+  perspective: 1000px; /* Включена перспектива для 3D вылета */
+}
+.main.hide { display: none; }
+.main.show { display: flex; }
+/* Привязываем анимацию к карточке */
+.main.show .card {
+  animation: cardEnter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* ═══ CARD ═══ */
+.card {
+  width: 100%; max-width: var(--card-w);
+  position: relative;
+  background: var(--card-bg);
+  backdrop-filter: blur(var(--blur)) saturate(1.3);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  
+  /* Подсказка браузеру вынести рендер на видеокарту (убирает лаги) */
+  will-change: transform, opacity; 
+}
+
+.card::before {
+  content: ''; position: absolute; inset: 0; border-radius: var(--radius);
+  background: linear-gradient(165deg, rgba(255,255,255,.04) 0%, transparent 40%);
+  pointer-events: none; z-index: 1;
+}
+
+/* ═══ UID ═══ */
+.uid {
+  position: absolute; top: 12px; right: 12px; z-index: 20;
+  font-size: .65rem; font-weight: 600; color: var(--text-dim);
+  background: rgba(0,0,0,.35); backdrop-filter: blur(12px);
+  padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+  letter-spacing: .5px; transition: color .25s, border-color .25s;
+}
+.uid:hover { color: var(--accent-color); border-color: var(--accent-20); }
+
+/* ═══ AVATAR ═══ */
+.avatar-area {
+  display: flex; justify-content: center; margin-top: -44px; position: relative; z-index: 5;
+}
+.avatar-wrap { position: relative; width: 88px; height: 88px; }
+.avatar {
+  width: 100%; height: 100%; border-radius: 30%; border: 1px solid var(--bg);
+  object-fit: cover; transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.avatar:hover { transform: scale(1.06); }
+.status {
+  position: absolute; bottom: 2px; right: 2px; width: 16px; height: 16px;
+  border-radius: 50%; border: 3px solid var(--bg); background: #3ba55c;
+}
+.avatar-deco {
+  position: absolute; inset: -18px; width: calc(100% + 36px); height: calc(100% + 36px);
+  pointer-events: none; object-fit: contain;
+}
+
+/* ═══ NAME + BADGES ═══ */
+.name-block { text-align: center; padding: 14px 20px 0; position: relative; z-index: 2; }
+.name { font-size: 1.35rem; font-weight: 700; letter-spacing: -.3px; }
+.badges { display: flex; justify-content: center; gap: 6px; margin-top: 6px; }
+.badge {
+  position: relative; color: var(--accent-color); opacity: .7;
+  transition: .25s ease; cursor: default; padding: 3px;
+}
+.badge:hover { opacity: 1; transform: translateY(-2px); }
+.badge::after {
+  content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%) scale(.92); padding: 3px 10px; background: rgba(0,0,0,.85);
+  border: 1px solid var(--border); border-radius: 6px; color: var(--text);
+  font-size: .6rem; font-weight: 500; white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: .2s ease;
+}
+.badge:hover::after { opacity: 1; transform: translateX(-50%) scale(1); }
+
+/* ═══ BIO ═══ */
+.bio {
+  text-align: center; padding: 6px 32px; font-size: .82rem;
+  line-height: 1.65; color: var(--text-dim); position: relative; z-index: 2;
+}
+.bio strong { color: var(--text); font-weight: 600; }
+.accent-text { color: var(--accent-color); font-weight: 600; font-size: .82rem; }
+.chip {
+  display: inline-block; background: var(--accent-10); color: var(--text-dim);
+  padding: 1px 10px; border-radius: 5px; font-size: .75rem; margin-bottom: 10px;
+}
+.sep { border: none; height: 1px; background: var(--border); width: 400px; margin: 8px auto; }
+
+/* ═══ GIF SLOT ═══ */
+.gif-slot { width: 100%; height: 160px; overflow: hidden; }
+.gif-slot img, .gif-slot video { 
+  width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; 
+}
+
+/* ═══ SOCIALS ═══ */
+.socials {
+  display: flex; justify-content: center; gap: 8px;
+  padding: 4px 20px 16px; position: relative; z-index: 2;
+}
+.soc {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: var(--radius-sm); color: var(--text-dim);
+  border: 1px solid var(--border); transition: .25s ease;
+}
+.soc:hover {
+  color: var(--accent-color); border-color: var(--accent-20);
+  background: var(--accent-10); transform: translateY(-3px);
+}
+.soc::after {
+  content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) scale(.92); padding: 3px 10px; background: rgba(0,0,0,.85);
+  border: 1px solid var(--border); border-radius: 6px; color: var(--text);
+  font-size: .6rem; font-weight: 500; white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: .2s ease;
+}
+.soc:hover::after { opacity: 1; transform: translateX(-50%) scale(1); }
+
+/* ═══ DISCORD PRESENCE ═══ */
+.presence {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin: 0 20px 10px; padding: 12px 14px; background: rgba(255,255,255,.02);
+  border: 1px solid var(--border); border-radius: var(--radius-sm); position: relative; z-index: 2;
+  transition: border-color .25s;
+}
+.presence:hover { border-color: var(--border-hover); }
+.presence-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.presence-av { position: relative; flex-shrink: 0; width: 40px; height: 40px; }
+.presence-av img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.dot {
+  position: absolute; bottom: -1px; right: -1px; width: 14px; height: 14px;
+  border-radius: 50%; border: 3px solid var(--card-bg); background: #3ba55c;
+}
+.presence-name { font-size: .85rem; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 4px; }
+.presence-tag { font-size: .72rem; color: var(--text-dim); }
+.presence-activity {
+  display: flex; align-items: center; gap: 6px; padding: 4px 12px;
+  background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 6px;
+  font-size: .72rem; font-weight: 500; color: var(--text); white-space: nowrap; flex-shrink: 0;
+}
+.presence-activity img { width: 16px; height: 16px; border-radius: 3px; }
+
+/* ═══ AUDIO PLAYER ═══ */
+.player {
+  margin: 0 20px 20px; padding: 14px 16px; background: rgba(255,255,255,.02);
+  border: 1px solid var(--border); border-radius: var(--radius-sm); position: relative; z-index: 2;
+  transition: border-color .25s;
+}
+.player:hover { border-color: var(--border-hover); }
+.player-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.bars { display: flex; align-items: flex-end; gap: 2px; height: 16px; }
+.bars i { display: block; width: 2.5px; background: var(--accent-color); border-radius: 1px; opacity: .55; }
+.bars i:nth-child(1) { height: 4px; animation: bar .7s ease-in-out infinite 0s; }
+.bars i:nth-child(2) { height: 10px; animation: bar .7s ease-in-out infinite .12s; }
+.bars i:nth-child(3) { height: 14px; animation: bar .7s ease-in-out infinite .24s; }
+.bars i:nth-child(4) { height: 8px; animation: bar .7s ease-in-out infinite .36s; }
+.bars.paused i { animation: none !important; height: 3px !important; }
+
+.track-link {
+  display: flex; align-items: center; gap: 5px; font-size: .78rem; color: var(--text-dim); transition: color .25s;
+}
+.track-link:hover { color: var(--accent-color); }
+.track-link svg { opacity: 0; transition: opacity .25s; stroke: var(--accent-color); }
+.track-link:hover svg { opacity: 1; }
+.player-mid { display: flex; align-items: center; gap: 8px; }
+.t { font-size: .6rem; color: var(--text-dim); min-width: 26px; font-variant-numeric: tabular-nums; }
+.t:last-child { text-align: right; }
+.prog {
+  flex: 1; height: 3px; background: rgba(255,255,255,.06); border-radius: 3px; cursor: pointer;
+  position: relative; transition: height .15s;
+}
+.prog:hover { height: 5px; }
+.prog-fill { height: 100%; width: 0%; background: var(--accent-color); border-radius: 3px; transition: width .1s linear; }
+.player-bot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.pbtn { color: var(--text-dim); padding: 4px; border-radius: 6px; transition: color .2s, background .2s; }
+.pbtn:hover { color: var(--accent-color); background: var(--accent-10); }
+.hide { display: none !important; }
+.vol { display: flex; align-items: center; gap: 4px; color: var(--text-muted); }
+.vol input[type="range"] {
+  -webkit-appearance: none; appearance: none; width: 60px; height: 3px;
+  background: rgba(255,255,255,.08); border-radius: 3px; outline: none; cursor: pointer;
+}
+.vol input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 8px; height: 8px;
+  background: var(--accent-color); border-radius: 50%;
+}
+.vol input[type="range"]::-moz-range-thumb {
+  width: 8px; height: 8px; background: var(--accent-color); border: none; border-radius: 50%;
+}
+
+/* ═══ ANIMATIONS (ОПТИМИЗИРОВАННАЯ ВЕРСИЯ - 60FPS) ═══ */
+@keyframes pulse { 0%, 100% { opacity: .4; } 50% { opacity: .8; } }
+@keyframes bar { 0%, 100% { height: 3px; } 50% { height: 16px; } }
+
+/* Карточка всплывает плавно, без тяжелого 3D и без блюра */
+@keyframes cardEnter {
+  0% { 
+    opacity: 0; 
+    transform: translateY(40px) scale(0.95); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+/* Внутренние элементы проявляются без блюра */
+@keyframes fadeUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(15px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: none; 
+  }
+}
+
+/* Очередь появления элементов карточки (Staggering) */
+.main.show .gif-slot    { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) .15s both; }
+.main.show .avatar-area { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) .25s both; }
+.main.show .name-block  { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) .35s both; }
+.main.show .bio         { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) .45s both; }
+.main.show .socials     { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) .55s both; }
+.main.show .presence    { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) .65s both; }
+.main.show .player      { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) .75s both; }
+
+@media (max-width: 520px) {
+  .banner { height: 130px; }
+  .avatar-wrap { width: 76px; height: 76px; }
+  .avatar-area { margin-top: -38px; }
+  .name { font-size: 1.15rem; }
+  .bio { padding: 14px 20px; }
+  .presence { flex-wrap: wrap; }
+  .presence-activity { width: 100%; justify-content: center; }
+  .card { border-radius: 14px; }
+}
+
